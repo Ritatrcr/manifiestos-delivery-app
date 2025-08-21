@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delivery-app
+  labels:
+    app: delivery-app
+spec:
+  replicas: 2  
+  selector:
+    matchLabels:
+      app: delivery-app
+  template:
+    metadata:
+      labels:
+        app: delivery-app
+    spec:
+      containers:
+        - name: delivery-app
+          image: ritatrcr/delivery-app:1.0.1
+          ports:
+            - containerPort: 3000
+          env:
+            # Puerto de la app (tu código usa APP_PORT)
+            - name: APP_PORT
+              value: "3000"
+
+            # Variables de DB desde el Secret bd-secret
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: bd-secret
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: bd-secret
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: bd-secret
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: bd-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bd-secret
+                  key: DB_PASSWORD
+
+            - name: NODE_ENV
+              value: "production"
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
