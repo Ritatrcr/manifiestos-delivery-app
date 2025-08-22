@@ -1,0 +1,57 @@
+db:
+  auth:
+    existingSecret: bd-secret         
+    username: postgres
+    database: postgres
+    secretKeys:
+      userPasswordKey: POSTGRES_PASSWORD
+      adminPasswordKey: POSTGRES_PASSWORD
+
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+  resources:
+    requests: { cpu: "250m", memory: "256Mi" }
+    limits:   { cpu: "500m", memory: "512Mi" }
+
+
+app:
+
+  image:
+    repository: ritatrcr/delivery-app
+    tag: latest           
+    pullPolicy: IfNotPresent
+  replicas: 2
+
+  service:
+    port: 80
+    targetPort: 3000      
+
+  resources:
+    requests: { cpu: "250m", memory: "256Mi" }
+    limits:   { cpu: "1",    memory: "512Mi" }
+  healthPath: /health
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    cpu: 60
+
+  db:
+    port: 5432
+    name: postgres
+    user: postgres
+    existingSecret: bd-secret
+    passwordKey: POSTGRES_PASSWORD
+
+  config:                  
+    LOG_LEVEL: info
+    FEATURE_X_ENABLED: "false"
+
+ingress:
+  enabled: true
+  className: nginx
+  

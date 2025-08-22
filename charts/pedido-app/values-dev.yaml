@@ -1,0 +1,36 @@
+# Bitnami PostgreSQL (alias db)
+db:
+  auth:
+    existingSecret: bd-secret
+    username: postgres
+    database: postgres
+    secretKeys:
+      userPasswordKey: POSTGRES_PASSWORD
+      adminPasswordKey: POSTGRES_PASSWORD
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# Overrides para el subchart app (opcional; si omites, usa los defaults del app/values.yaml)
+app:
+  image:
+    repository: ritatrcr/delivery-app
+    tag: "1.0.1"
+  replicas: 2
+  service:
+    port: 80
+    targetPort: 3000
+  healthPath: /health
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    cpu: 60
+  db:
+    host: ""                  # o déjalo vacío
+    port: 5432
+    name: postgres       
+    user: postgres        
+    existingSecret: bd-secret
+    passwordKey: POSTGRES_PASSWORD

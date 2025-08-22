@@ -1,0 +1,28 @@
+# --- PostgreSQL (hereda del base; aquí solo overrides de prod)
+db:
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi        # más grande en prod
+  resources:
+    requests: { cpu: "500m", memory: "512Mi" }
+    limits:   { cpu: "2",    memory: "2Gi" }
+
+# --- App monolito (tu imagen)
+app:
+  image:
+    repository: ritatrcr/delivery-app
+    tag: "1.0.1"
+  replicas: 3                     # valor inicial; HPA lo podrá subir/bajar
+  resources:
+    requests: { cpu: "500m", memory: "512Mi" }
+    limits:   { cpu: "2",    memory: "1Gi" }
+  hpa:
+    enabled: true
+    minReplicas: 3               # para prod suele ser ≥3
+    maxReplicas: 8
+    cpu: 60
+
+# --- Ingress
+ingress:
+  className: nginx

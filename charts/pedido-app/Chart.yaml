@@ -1,0 +1,16 @@
+apiVersion: v2
+name: pedido-app
+description: Pedido (delivery-app) + PostgreSQL
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: postgresql
+    version: 16.*
+    repository: https://charts.bitnami.com/bitnami
+    alias: db
+
+  - name: app
+    version: 0.1.0
+    repository: "file://subcharts/app"   # ← subchart local, NO es tu repo de Docker

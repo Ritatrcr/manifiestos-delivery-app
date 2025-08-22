@@ -1,0 +1,26 @@
+image: { repository: ritatrcr/delivery-app, tag: "1.0.1", pullPolicy: IfNotPresent }
+replicas: 2
+service: { port: 80, targetPort: 3000 }
+resources:
+  requests: { cpu: "250m", memory: "256Mi" }
+  limits:   { cpu: "1",    memory: "512Mi" }
+healthPath: /health
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  cpu: 60
+
+# Datos que tu app usa para conectarse a la DB
+db:
+  host: ""                      # si vacío → <release>-db-postgresql
+  port: 5432
+  name: postgres
+  user: postgres
+  existingSecret: "bd-secret"   # NUNCA pongas la pass aquí
+  passwordKey: "POSTGRES_PASSWORD"
+
+# Config no sensible (ConfigMap)
+config:
+  LOG_LEVEL: info
+  FEATURE_X_ENABLED: "false"

@@ -1,0 +1,15 @@
+# comunes
+.DS_Store
+.git/
+.github/
+.gitignore
+*.swp
+*.tmp
+*.bak
+*.orig
+# charts
+charts/*.tgz
+# node
+node_modules/
+# env locales
+.env
