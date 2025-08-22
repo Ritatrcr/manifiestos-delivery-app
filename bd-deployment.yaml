@@ -41,14 +41,14 @@ spec:
                   key: POSTGRES_PASSWORD
 
 
-      #   - name: PGDATA
-      #     value: /var/lib/postgresql/data/pgdata
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
 
-      #   volumeMounts:
-      #   - name: postgres-storage
-      #     mountPath: /var/lib/postgresql/data
+              volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
 
-      # volumes:
-      # - name: postgres-storage
-      #   persistentVolumeClaim:
-      #     claimName: db-pvc  # Asegúrate de que el PVC coincida
+        volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: db-pvc  # Asegúrate de que el PVC coincida

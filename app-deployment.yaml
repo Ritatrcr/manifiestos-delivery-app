@@ -5,7 +5,7 @@ metadata:
   labels:
     app: delivery-app
 spec:
-  replicas: 2  
+  replicas: 2
   selector:
     matchLabels:
       app: delivery-app
@@ -18,7 +18,8 @@ spec:
         - name: delivery-app
           image: ritatrcr/delivery-app:1.0.1
           ports:
-            - containerPort: 3000
+            - name: http
+              containerPort: 3000
           env:
             # Puerto de la app (tu código usa APP_PORT)
             - name: APP_PORT
@@ -54,7 +55,34 @@ spec:
             - name: NODE_ENV
               value: "production"
 
+          # Probes
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 10
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+
           resources:
             requests:
               memory: "256Mi"
               cpu: "500m"
+
+            
