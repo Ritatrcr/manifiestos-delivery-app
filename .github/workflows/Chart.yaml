@@ -96,8 +96,8 @@ jobs:
       - name: Commit & push changes (with PAT)
         shell: bash
         env:
-          PAT_USER:  ritatrcr
-          PAT_TOKEN: ${{ secrets.PAT_HELMCHART }}       # PAT con RW a este repo
+          PAT_USER: ritatrcr
+          PAT_TOKEN: ${{ secrets.PAT_HELMCHART }}       
         run: |
           set -euxo pipefail
           git config user.name  "github-actions"
