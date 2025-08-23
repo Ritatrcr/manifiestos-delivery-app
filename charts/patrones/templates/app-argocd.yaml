@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: default
   source:
-    repoURL: https://juangomeper.github.io/helm-chart/
+    repoURL: https://ritatrcr.github.io/helm-chart/
     chart: patrones
     targetRevision: "*"  
     helm:
