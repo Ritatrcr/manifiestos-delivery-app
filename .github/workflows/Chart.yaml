@@ -1,4 +1,4 @@
-name: Package & Publish Helm (dynamic version)
+name: Package & Publish Helm (in manifests repo)
 
 on:
   workflow_dispatch:
@@ -11,39 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # === Repositorios ===
-      HELM_MANIFESTS_REPO: ritatrcr/manifiestos-delivery-app
-      HELM_PAGES_REPO: ritatrcr/manifiestos-delivery-app
-      HELM_PAGES_BRANCH: main
-      HELM_REPO_URL: https://ritatrcr.github.io/helm-chart/
-
-      # === Ubicación del chart ===
-      HELM_CHART_DIR: charts/pedido-app       # ruta dentro del repo de manifiestos
-      HELM_CHART_NAME: pedido-app             # nombre del chart (prefijo del .tgz)
+      HELM_CHART_DIR: charts/pedido-app
+      HELM_CHART_NAME: pedido-app
+      HELM_REPO_URL: https://ritatrcr.github.io/manifiestos-delivery-app/  # URL de Pages de ESTE repo
 
     steps:
-      # Repo donde vive el chart
-      - name: Checkout manifests repo (chart source)
+      - name: Checkout manifests repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ env.HELM_MANIFESTS_REPO }}
           token: ${{ secrets.PAT_HELMCHART }}
-          path: manifiestos
-
-      # Repo de Pages donde publicamos el index.yaml y los .tgz
-      - name: Checkout helm-chart repo (Pages)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.HELM_PAGES_REPO }}
-          token: ${{ secrets.PAT_HELMCHART }}
-          ref: ${{ env.HELM_PAGES_BRANCH }}
-          path: helm-chart
 
       - name: Install Helm & yq
         uses: azure/setup-helm@v4
         with:
           version: v3.14.4
-      - name: Install yq binary
+      - name: Install yq
         shell: bash
         run: |
           set -euxo pipefail
@@ -57,83 +39,54 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          cd "manifiestos/${HELM_CHART_DIR}"
+          cd "${HELM_CHART_DIR}"
           helm lint .
 
-      - name: Package chart into helm-chart repo
+      - name: Package chart into root
         id: pkg
         shell: bash
         run: |
           set -euxo pipefail
-          # Limpia el repo de Pages para evitar conflictos locales
-          cd helm-chart
-          git fetch --all
-          git checkout "${HELM_PAGES_BRANCH}"
-          git reset --hard "origin/${HELM_PAGES_BRANCH}"
-          git clean -fdx
-          cd ..
+          cd "${HELM_CHART_DIR}"
+          helm package . -d "$GITHUB_WORKSPACE"
 
-          # Empaquetar dejando el .tgz directamente en helm-chart/
-          cd "manifiestos/${HELM_CHART_DIR}"
-          helm package . -d "$GITHUB_WORKSPACE/helm-chart"
-
-          # Detectar el .tgz recién creado (el más reciente)
-          PKG_PATH="$(ls -1t "$GITHUB_WORKSPACE/helm-chart/${HELM_CHART_NAME}-"*.tgz | head -n 1)"
+          # Detectar el tgz más reciente
+          PKG_PATH="$(ls -1t "$GITHUB_WORKSPACE/${HELM_CHART_NAME}-"*.tgz | head -n 1)"
           test -f "$PKG_PATH"
           echo "PKG_PATH=$PKG_PATH" >> "$GITHUB_OUTPUT"
           echo "PKG_PATH=$PKG_PATH"
 
-          # Derivar versión desde el nombre del archivo
           PKG_FILE="$(basename "$PKG_PATH")"
-          # Ej: pedido-app-1.2.3+45.tgz -> 1.2.3+45
           CHART_VERSION="${PKG_FILE#${HELM_CHART_NAME}-}"
           CHART_VERSION="${CHART_VERSION%.tgz}"
           echo "CHART_VERSION=$CHART_VERSION" >> "$GITHUB_OUTPUT"
           echo "CHART_VERSION=$CHART_VERSION"
-      
-      # ====== VERIFICACIONES (index y values dentro del .tgz) ======
-      - name: Show index head & list tgz (before update)
-        shell: bash
-        run: |
-          set -euxo pipefail
-          cd helm-chart
-          ls -lh *.tgz || true
-          if [ -f index.yaml ]; then head -n 20 index.yaml; else echo "index.yaml aún no existe"; fi
 
-      - name: Assert values-dev/prod included in tgz
+      - name: Assert values-dev/prod inside tgz
         shell: bash
         run: |
           set -euxo pipefail
-          tar -tzf "${{ steps.pkg.outputs.PKG_PATH }}" | egrep 'values-(dev|prod)\.yaml'
+          tar -tzf "${{ steps.pkg.outputs.PKG_PATH }}" | grep -E 'values-(dev|prod)\.yaml'
 
       # ====== INDEX (merge) ======
-      - name: Update Helm repo index (merge)
+      - name: Update Helm repo index
         shell: bash
         run: |
           set -euxo pipefail
-          cd helm-chart
           if [ -f index.yaml ]; then
             helm repo index . --url "${HELM_REPO_URL}" --merge index.yaml
           else
             helm repo index . --url "${HELM_REPO_URL}"
           fi
-          echo "==== index.yaml (head) ===="
           head -n 20 index.yaml
-          echo "==== paquetes ===="
-          ls -lh *.tgz
 
-      # ====== COMMIT & PUSH (usando PAT) ======
-      - name: Commit & push to Pages
+      # ====== COMMIT & PUSH ======
+      - name: Commit & push changes
         shell: bash
-        env:
-          PAT_USER: ${{ secrets.PAT_HELMCHART_USER }}
         run: |
           set -euxo pipefail
-          cd helm-chart
           git config user.name  "github-actions"
           git config user.email "github-actions@github.com"
-          git add -A
+          git add *.tgz index.yaml
           git commit -m "Publish chart ${HELM_CHART_NAME} ${{ steps.pkg.outputs.CHART_VERSION }}" || echo "No commit needed"
-          # Forzar remoto con usuario+PAT para evitar 403
-          git remote set-url origin "https://${PAT_USER}:${{ secrets.PAT_HELMCHART }}@github.com/${HELM_PAGES_REPO}.git"
-          git push origin "${HELM_PAGES_BRANCH}"
+          git push origin main
