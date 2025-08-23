@@ -81,12 +81,17 @@ jobs:
           head -n 20 index.yaml
 
       # ====== COMMIT & PUSH ======
-      - name: Commit & push changes
+      - name: Commit & push changes (with PAT)
         shell: bash
+        env:
+          PAT_USER: ritatrcr   # ej: ritatrcr
+          PAT_TOKEN: ${{ secrets.PAT_HELMCHART }}       # tu PAT con RW
         run: |
           set -euxo pipefail
           git config user.name  "github-actions"
           git config user.email "github-actions@github.com"
           git add *.tgz index.yaml
           git commit -m "Publish chart ${HELM_CHART_NAME} ${{ steps.pkg.outputs.CHART_VERSION }}" || echo "No commit needed"
+          # Fuerza el remoto a https con usuario+PAT (evita 403)
+          git remote set-url origin "https://${PAT_USER}:${PAT_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin main
