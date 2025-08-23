@@ -28,7 +28,7 @@ service:
 ingress:
   enabled: true
   className: nginx
-  host: dev.tu-ip-publica.nip.io   # <--- cámbialo por tu IP; ej: dev.157.230.67.131.nip.io
+  host: dev.167.172.14.0.nip.io 
   path: /api
   pathType: Prefix
   annotations:

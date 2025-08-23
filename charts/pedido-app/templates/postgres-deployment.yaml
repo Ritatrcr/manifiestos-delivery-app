@@ -40,7 +40,7 @@ spec:
                   pg_isready -q
                   -h 127.0.0.1
                   -p {{ .Values.postgres.port }}
-            failureThreshold: 30    # ~30 * 2s = 60s (ajusta si tu init es más lento)
+            failureThreshold: 30   
             periodSeconds: 2
             timeoutSeconds: 2
 
@@ -71,7 +71,6 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 6
-          # ===================== pruebas
 
       volumes:
         - name: postgres-storage

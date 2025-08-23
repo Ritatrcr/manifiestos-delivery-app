@@ -28,7 +28,7 @@ service:
 ingress:
   enabled: true
   className: nginx
-  host: pedidos.tu-dominio.com   # <--- cámbialo por tu dominio real
+  host: prod.167.172.14.0.nip.io   # <--- cámbialo por tu dominio real
   path: /api
   pathType: Prefix
   annotations:
