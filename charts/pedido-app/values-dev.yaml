@@ -1,9 +1,8 @@
 # === DELIVERY APP (DEV) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v0.0.0   # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v0.0.0 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
-
 app:
   replicas: 1
   resources:
@@ -15,31 +14,30 @@ app:
       memory: "256Mi"
   env:
     NODE_ENV: development
-    DB_HOST: postgres            # nombre del Service de Postgres que creas con el chart
+    DB_HOST: postgres # nombre del Service de Postgres que creas con el chart
     DB_PORT: "5432"
     DB_USER: pedidos
-    DB_PASSWORD: pedidos123      # si usas Secret, que tu template lo lea de ahí
+    DB_PASSWORD: pedidos123 # si usas Secret, que tu template lo lea de ahí
     DB_NAME: pedidos
-
+  image:
+    repository: ritatrcr/delivery-app
+    tag: v1.0.0
 service:
   type: ClusterIP
   port: 3000
-
 ingress:
   enabled: true
   className: nginx
-  host: dev.167.172.14.0.nip.io 
+  host: dev.167.172.14.0.nip.io
   path: /api
   pathType: Prefix
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-
 hpa:
   enabled: false
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 75
-
 # === POSTGRES (DEV) ===
 postgres:
   enabled: true
@@ -60,3 +58,11 @@ postgres:
     limits:
       cpu: "200m"
       memory: "256Mi"
+backend:
+  image:
+    repository: ritatrcr/delivery-app
+    tag: v1.0.0
+frontend:
+  image:
+    repository: ritatrcr/delivery-app
+    tag: v1.0.0

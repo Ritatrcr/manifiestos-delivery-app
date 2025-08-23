@@ -1,9 +1,8 @@
 # === DELIVERY APP (PROD) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v0.0.0   # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v0.0.0 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
-
 app:
   replicas: 3
   resources:
@@ -18,28 +17,27 @@ app:
     DB_HOST: postgres
     DB_PORT: "5432"
     DB_USER: pedidos
-    DB_PASSWORD: pedidos123      # o léelo desde tu Secret si tu template lo soporta
+    DB_PASSWORD: pedidos123 # o léelo desde tu Secret si tu template lo soporta
     DB_NAME: pedidos
-
+  image:
+    repository: ritatrcr/delivery-app
+    tag: v1.0.0
 service:
   type: ClusterIP
   port: 3000
-
 ingress:
   enabled: true
   className: nginx
-  host: prod.167.172.14.0.nip.io   # <--- cámbialo por tu dominio real
+  host: prod.167.172.14.0.nip.io # <--- cámbialo por tu dominio real
   path: /api
   pathType: Prefix
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-
 hpa:
   enabled: true
   minReplicas: 3
   maxReplicas: 6
   targetCPUUtilizationPercentage: 60
-
 # === POSTGRES (PROD) ===
 postgres:
   enabled: true
@@ -60,3 +58,11 @@ postgres:
     limits:
       cpu: "1000m"
       memory: "1Gi"
+backend:
+  image:
+    repository: ritatrcr/delivery-app
+    tag: v1.0.0
+frontend:
+  image:
+    repository: ritatrcr/delivery-app
+    tag: v1.0.0

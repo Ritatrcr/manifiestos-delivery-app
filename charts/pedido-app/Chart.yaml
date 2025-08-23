@@ -2,7 +2,5 @@ apiVersion: v2
 name: pedido-app
 description: Chart de la app monolito + Postgres + Ingress
 type: application
-
-version: 0.1.1
+version: 1.0.0
 appVersion: "1.0.22-fa01652"
-
