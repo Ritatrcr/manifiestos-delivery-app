@@ -1,8 +1,0 @@
-apiVersion: v2
-name: patrones
-description: Chart de la app monolito + Postgres + Ingress
-type: application
-
-version: 1.0.22-fa01652
-appVersion: "1.0.22-fa01652"
-
