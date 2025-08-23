@@ -60,6 +60,30 @@ jobs:
           cd "${HELM_CHART_DIR}"
           helm lint .
 
+      # 4.1) Auto bump de versión (patch) en Chart.yaml y push al repo de manifiestos
+      - name: Auto bump Chart.yaml (patch) and push
+        shell: bash
+        env:
+          PAT_USER: ${{ secrets.PAT_HELMCHART_USER }}   # ej: ritatrcr
+          PAT_TOKEN: ${{ secrets.PAT_HELMCHART }}       # PAT con RW a este repo
+        run: |
+          set -euxo pipefail
+          cd "${HELM_CHART_DIR}"
+          CUR=$(yq '.version' Chart.yaml)
+          IFS=. read -r MA MI PA <<< "$CUR"
+          NEXT="${MA}.${MI}.$((PA+1))"
+          yq -i ".version = \"${NEXT}\"" Chart.yaml
+          git config user.name  "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Chart.yaml
+          git commit -m "chore(chart): bump version to ${NEXT}" || echo "No commit needed"
+          # Sincroniza y empuja el bump al repo de manifiestos
+          cd "$GITHUB_WORKSPACE"
+          git fetch origin main
+          git pull --rebase origin main || true
+          git remote set-url origin "https://${PAT_USER}:${PAT_TOKEN}@github.com/${{ github.repository }}.git"
+          git push origin main || true
+
       # 5) Preparar árbol limpio en el repo de Pages (evita unstaged changes)
       - name: Prepare clean main in helm-chart repo
         shell: bash
@@ -121,7 +145,7 @@ jobs:
       - name: Commit & push changes (to helm-chart repo)
         shell: bash
         env:
-          PAT_USER: ritatrcr   # ej: ritatrcr
+          PAT_USER: ${{ secrets.PAT_HELMCHART_USER }}   # ej: ritatrcr
           PAT_TOKEN: ${{ secrets.PAT_HELMCHART }}       # PAT con Contents: Read/Write
         run: |
           set -euxo pipefail
