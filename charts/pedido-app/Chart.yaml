@@ -1,0 +1,8 @@
+apiVersion: v2
+name: pedido-app
+description: Chart de la app monolito + Postgres + Ingress
+type: application
+
+version: 0.1.0     # o la que quieras usar
+appVersion: "1.0.22-fa01652"
+
