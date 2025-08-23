@@ -13,7 +13,7 @@ jobs:
     env:
       # === Repositorios ===
       HELM_MANIFESTS_REPO: ritatrcr/manifiestos-delivery-app
-      HELM_PAGES_REPO: ritatrcr/helm-chart
+      HELM_PAGES_REPO: ritatrcr/manifiestos-delivery-app
       HELM_PAGES_BRANCH: main
       HELM_REPO_URL: https://ritatrcr.github.io/helm-chart/
 
