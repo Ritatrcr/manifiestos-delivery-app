@@ -1,70 +1,36 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ include "app.fullname" . }}
-  labels:
-    app.kubernetes.io/name: {{ include "app.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-spec:
-  replicas: {{ .Values.replicas }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: {{ include "app.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: {{ include "app.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
-    spec:
-      containers:
-        - name: app
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.targetPort }}
-          envFrom:
-            - configMapRef:
-                name: {{ include "app.fullname" . }}-config
           env:
             - name: PORT
               value: "{{ .Values.service.targetPort }}"
+            - name: APP_PORT
+              value: "{{ .Values.service.targetPort }}"
             - name: HOST
               value: "0.0.0.0"
-            # ==== DB ====
-            - name: DB_HOST
-              value: "{{ if .Values.db.host }}{{ .Values.db.host }}{{ else }}{{ .Release.Name }}-db-postgresql{{ end }}"
-            - name: DB_PORT
-              value: "{{ .Values.db.port }}"
-            - name: DB_NAME
-              value: "{{ .Values.db.name }}"
-            - name: DB_USER
-              value: "{{ .Values.db.user }}"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.db.existingSecret }}
-                  key: {{ .Values.db.passwordKey }}
-          # Probes
+            # ... DB_* ...
+
+          # Probes (readiness por TCP para “levantar” endpoints)
           startupProbe:
-            httpGet: { path: {{ .Values.healthPath }}, port: http }
+            httpGet:
+              path: {{ .Values.healthPath | quote }}
+              port: http
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 10
           readinessProbe:
-            httpGet: { path: {{ .Values.healthPath }}, port: http }
-            initialDelaySeconds: 10
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
-            httpGet: { path: {{ .Values.healthPath }}, port: http }
+            httpGet:
+              path: {{ .Values.healthPath | quote }}
+              port: http
             initialDelaySeconds: 20
             periodSeconds: 10
+
           resources:
-            requests: {{- toYaml .Values.resources.requests | nindent 12 }}
-            limits:   {{- toYaml .Values.resources.limits   | nindent 12 }}
-      securityContext:
-        runAsNonRoot: true
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+              memory: {{ .Values.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | quote }}
+              memory: {{ .Values.resources.limits.memory | quote }}

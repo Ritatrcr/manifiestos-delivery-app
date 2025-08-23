@@ -1,36 +1,80 @@
-# Bitnami PostgreSQL (alias db)
+# =========================
+# DEV values - pedido-app
+# =========================
+
+# --- Base de datos (Bitnami PostgreSQL, alias: db) ---
 db:
   auth:
+    # Usamos un Secret existente en el namespace: bd-secret
+    # Crea antes: kubectl -n pedido-dev create secret generic bd-secret --from-literal=POSTGRES_PASSWORD='TuPassSegura'
     existingSecret: bd-secret
     username: postgres
     database: postgres
     secretKeys:
       userPasswordKey: POSTGRES_PASSWORD
       adminPasswordKey: POSTGRES_PASSWORD
+
   primary:
     persistence:
       enabled: true
       size: 10Gi
+    # Puedes fijar la StorageClass si tu clúster no tiene default:
+    # persistence:
+    #   storageClass: "standard"
 
-# Overrides para el subchart app (opcional; si omites, usa los defaults del app/values.yaml)
+# --- Overrides del subchart app (tu contenedor ritatrcr/delivery-app) ---
 app:
   image:
     repository: ritatrcr/delivery-app
     tag: "1.0.1"
+    pullPolicy: IfNotPresent
+
   replicas: 2
+
   service:
-    port: 80
-    targetPort: 3000
-  healthPath: /health
+    port: 80         # Puerto expuesto por el Service (ClusterIP)
+    targetPort: 3000 # Puerto en el contenedor (donde escucha tu app)
+
+  # Mientras validamos readiness, usamos "/" (si tienes endpoint de salud, cambia a "/health")
+  healthPath: "/"
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "512Mi"
+
   hpa:
     enabled: true
     minReplicas: 2
     maxReplicas: 5
-    cpu: 60
+    cpu: 60  # % de utilización de CPU objetivo
+
+  # Datos de conexión a la DB que consume la app
   db:
-    host: ""                  # o déjalo vacío
+    host: ""                 # vacío => usa "<release>-db-postgresql" (lo resuelve el template)
     port: 5432
-    name: postgres       
-    user: postgres        
+    name: postgres
+    user: postgres
     existingSecret: bd-secret
     passwordKey: POSTGRES_PASSWORD
+
+  # ConfigMap (no sensible)
+  config:
+    LOG_LEVEL: "info"
+    FEATURE_X_ENABLED: "false"
+
+# --- Ingress (Nginx) ---
+ingress:
+  enabled: true
+  className: nginx
+  host: ""           # lo sobreescribimos por CLI con nip.io para evitar choque con prod
+  annotations: {}    # sin rewrites (no se necesitan para / y /api)
+
+# (Opcional) Si necesitas poner el Ingress bajo un subpath y reescribir, usarías:
+# ingress:
+#   annotations:
+#     nginx.ingress.kubernetes.io/use-regex: "true"
+#     nginx.ingress.kubernetes.io/rewrite-target: "/$2"

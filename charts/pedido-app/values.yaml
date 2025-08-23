@@ -54,4 +54,6 @@ app:
 ingress:
   enabled: true
   className: nginx
+  host: ""        # lo sobreescribimos por CLI con nip.io
+  annotations: {} # vacío para evitar bloque sin contenido
   
