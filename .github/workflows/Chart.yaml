@@ -1,4 +1,4 @@
-name: Package & Publish Helm (in manifests repo, subfolder helm-chart)
+name: Package & Publish Helm (to helm-chart repo + GitHub Pages)
 
 on:
   workflow_dispatch:
@@ -11,18 +11,33 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      HELM_CHART_DIR: charts/pedido-app          # ruta del chart
-      HELM_CHART_NAME: pedido-app                # nombre del chart
-      HELM_REPO_SUBDIR: helm-chart               # carpeta donde se publican .tgz + index.yaml
-      HELM_REPO_URL: https://ritatrcr.github.io/manifiestos-delivery-app/helm-chart/  # URL pública de esa carpeta en Pages
+      # === Chart origen (en este repo) ===
+      HELM_CHART_DIR: charts/pedido-app
+      HELM_CHART_NAME: pedido-app
+
+      # === Repo de destino (Pages) ===
+      HELM_PAGES_REPO: ritatrcr/helm-chart
+      HELM_PAGES_BRANCH: main
+      HELM_REPO_URL: https://ritatrcr.github.io/helm-chart/   # URL pública de Pages
 
     steps:
+      # 1) Checkout del repo donde está el chart (este repo)
       - name: Checkout manifests repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_HELMCHART }}
-          persist-credentials: false  # importante para no usar GITHUB_TOKEN por defecto
+          persist-credentials: false  # evitamos que quede el GITHUB_TOKEN por defecto
 
+      # 2) Checkout del repo de Pages (destino)
+      - name: Checkout helm-chart repo (Pages)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.HELM_PAGES_REPO }}
+          ref: ${{ env.HELM_PAGES_BRANCH }}
+          path: helm-pages
+          token: ${{ secrets.PAT_HELMCHART }}
+          persist-credentials: false
+
+      # 3) Herramientas
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
@@ -37,7 +52,7 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
           helm version && yq --version
 
-      # ====== LINT & PACKAGE ======
+      # 4) Lint del chart
       - name: Lint chart
         shell: bash
         run: |
@@ -45,43 +60,53 @@ jobs:
           cd "${HELM_CHART_DIR}"
           helm lint .
 
-      - name: Package chart into helm-chart/ subfolder
+      # 5) Preparar árbol limpio en el repo de Pages (evita unstaged changes)
+      - name: Prepare clean main in helm-chart repo
+        shell: bash
+        run: |
+          set -euxo pipefail
+          cd helm-pages
+          git fetch --all
+          git checkout "${HELM_PAGES_BRANCH}"
+          git reset --hard "origin/${HELM_PAGES_BRANCH}"
+          git clean -fdx
+          git status
+
+      # 6) Empaquetar el chart directamente dentro del repo de Pages
+      - name: Package chart into helm-pages/
         id: pkg
         shell: bash
         run: |
           set -euxo pipefail
-          # Asegura la carpeta de publicación
-          mkdir -p "${HELM_REPO_SUBDIR}"
-
-          # Empaqueta el chart directamente dentro de helm-chart/
           cd "${HELM_CHART_DIR}"
-          helm package . -d "$GITHUB_WORKSPACE/${HELM_REPO_SUBDIR}"
+          helm package . -d "$GITHUB_WORKSPACE/helm-pages"
 
-          # Detecta el tgz recién creado
-          PKG_PATH="$(ls -1t "$GITHUB_WORKSPACE/${HELM_REPO_SUBDIR}/${HELM_CHART_NAME}-"*.tgz | head -n 1)"
+          # Detectar el tgz recién creado
+          PKG_PATH="$(ls -1t "$GITHUB_WORKSPACE/helm-pages/${HELM_CHART_NAME}-"*.tgz | head -n 1)"
           test -f "$PKG_PATH"
           echo "PKG_PATH=$PKG_PATH" >> "$GITHUB_OUTPUT"
           echo "PKG_PATH=$PKG_PATH"
 
-          # Extrae versión del nombre de archivo: pedido-app-<VERSION>.tgz -> <VERSION>
+          # Extraer versión desde el nombre: pedido-app-<VERSION>.tgz -> <VERSION>
           PKG_FILE="$(basename "$PKG_PATH")"
           CHART_VERSION="${PKG_FILE#${HELM_CHART_NAME}-}"
           CHART_VERSION="${CHART_VERSION%.tgz}"
           echo "CHART_VERSION=$CHART_VERSION" >> "$GITHUB_OUTPUT"
           echo "CHART_VERSION=$CHART_VERSION"
 
+      # 7) Verificar que values-dev/prod están dentro del .tgz
       - name: Assert values-dev/prod inside tgz
         shell: bash
         run: |
           set -euxo pipefail
           tar -tzf "${{ steps.pkg.outputs.PKG_PATH }}" | grep -E 'values-(dev|prod)\.yaml'
 
-      # ====== INDEX (merge) dentro de helm-chart/ ======
-      - name: Update Helm repo index (in subfolder)
+      # 8) Generar/actualizar index.yaml (merge) en el repo de Pages
+      - name: Update Helm repo index (merge) in helm-pages
         shell: bash
         run: |
           set -euxo pipefail
-          cd "${HELM_REPO_SUBDIR}"
+          cd helm-pages
           if [ -f index.yaml ]; then
             helm repo index . --url "${HELM_REPO_URL}" --merge index.yaml
           else
@@ -92,18 +117,18 @@ jobs:
           echo "==== paquetes ===="
           ls -lh *.tgz
 
-      # ====== COMMIT & PUSH ======
-      - name: Commit & push changes (with PAT)
+      # 9) Commit & push al repo de Pages usando PAT (evita 403)
+      - name: Commit & push changes (to helm-chart repo)
         shell: bash
         env:
-          PAT_USER: ritatrcr
-          PAT_TOKEN: ${{ secrets.PAT_HELMCHART }}       
+          PAT_USER: ritatrcr   # ej: ritatrcr
+          PAT_TOKEN: ${{ secrets.PAT_HELMCHART }}       # PAT con Contents: Read/Write
         run: |
           set -euxo pipefail
+          cd helm-pages
           git config user.name  "github-actions"
           git config user.email "github-actions@github.com"
-          git add "${HELM_REPO_SUBDIR}/${HELM_CHART_NAME}-"*.tgz "${HELM_REPO_SUBDIR}/index.yaml"
+          git add -A
           git commit -m "Publish chart ${HELM_CHART_NAME} ${{ steps.pkg.outputs.CHART_VERSION }}" || echo "No commit needed"
-          # Fuerza el remoto con usuario+PAT (evita 403)
-          git remote set-url origin "https://${PAT_USER}:${PAT_TOKEN}@github.com/${{ github.repository }}.git"
-          git push origin main
+          git remote set-url origin "https://${PAT_USER}:${PAT_TOKEN}@github.com/${{ env.HELM_PAGES_REPO }}.git"
+          git push origin "${HELM_PAGES_BRANCH}"
