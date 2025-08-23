@@ -71,7 +71,7 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 6
-          # =====================
+          # ===================== pruebas
 
       volumes:
         - name: postgres-storage
