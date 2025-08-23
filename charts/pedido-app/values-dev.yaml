@@ -21,7 +21,7 @@ app:
     DB_NAME: pedidos
   image:
     repository: ritatrcr/delivery-app
-    tag: v1.0.0
+    tag: v1.0.1
 service:
   type: ClusterIP
   port: 3000
@@ -61,8 +61,8 @@ postgres:
 backend:
   image:
     repository: ritatrcr/delivery-app
-    tag: v1.0.0
+    tag: v1.0.1
 frontend:
   image:
     repository: ritatrcr/delivery-app
-    tag: v1.0.0
+    tag: v1.0.1
