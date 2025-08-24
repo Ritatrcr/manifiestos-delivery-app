@@ -1,7 +1,7 @@
 # === DELIVERY APP (PROD) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v1.0.12 # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v1.0.13 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
 app:
   replicas: 3
@@ -24,12 +24,13 @@ service:
   port: 3000
 ingress:
   enabled: true
-  className: nginx
-  host: prod.167.172.14.0.nip.io # <--- cámbialo por tu dominio real
-  path: /prod(/|$)(.*) 
+  ingressClassName: nginx
+  host: prod.167.172.14.0.nip.io
+  path: /prod(/|$)(.*)             # regex con grupos
   pathType: Prefix
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
 hpa:
   enabled: true
   minReplicas: 3
