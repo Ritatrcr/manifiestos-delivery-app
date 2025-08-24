@@ -26,7 +26,7 @@ ingress:
   enabled: true
   className: nginx
   host: prod.167.172.14.0.nip.io # <--- cámbialo por tu dominio real
-  path: /api
+  path: /prod
   pathType: Prefix
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
