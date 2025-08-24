@@ -1,10 +1,10 @@
 # === DELIVERY APP (DEV) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v1.0.16 # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v1.0.17 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
 app:
-  replicas: 1
+  replicas: 2
   resources:
     requests:
       cpu: "100m"
