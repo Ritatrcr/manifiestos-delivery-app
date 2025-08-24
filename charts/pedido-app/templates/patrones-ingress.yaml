@@ -1,18 +1,26 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Chart.Name }}
+  name: {{ include "<CHART>.fullname" . }}
+  labels:
+    {{- include "<CHART>.labels" . | nindent 4 }}
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: "flase"
+    {{- if .Values.ingress.useRegex }}
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    {{- end }}
+    {{- with .Values.ingress.rewriteTarget }}
+    nginx.ingress.kubernetes.io/rewrite-target: {{ . | quote }}
+    {{- end }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ default "nginx" .Values.ingress.ingressClassName }}
   rules:
-  - http:
-      paths:
-      - path: {{ .Values.ingress.path }}
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: {{ .Chart.Name }}
-            port:
-              number: {{ .Values.service.port }}
+    - host: {{ required "Set .Values.ingress.host en values-*.yaml" .Values.ingress.host }}
+      http:
+        paths:
+          - path: {{ default "/" .Values.ingress.path }}
+            pathType: {{ ternary "ImplementationSpecific" "Prefix" .Values.ingress.useRegex }}
+            backend:
+              service:
+                name: {{ include "<CHART>.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
