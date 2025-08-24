@@ -1,7 +1,7 @@
 # === DELIVERY APP (DEV) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v1.0.13 # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v1.0.16 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
 app:
   replicas: 1
@@ -24,13 +24,8 @@ service:
   port: 3000
 ingress:
   enabled: true
-  ingressClassName: nginx          # usa esta llave estándar
-  host: dev.167.172.14.0.nip.io
-  path: /dev(/|$)(.*)              # regex con grupos
-  pathType: Prefix
-  annotations:
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+  className: nginx
+  path: /patrones-dev(/|$)(.*)   
 hpa:
   enabled: false
   minReplicas: 1
