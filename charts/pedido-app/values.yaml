@@ -17,10 +17,10 @@ resources:
 postgres:
   image: postgres:15
   storage: 1Gi
-  user: postgres
-  password: postgres
-  db: postgres
-  port: 5432
+  user: DB_USER
+  password: DB_PASSWORD
+  db: DB_NAME
+  port: DB_PORT
 hpa:
   enabled: true
   minReplicas: 2

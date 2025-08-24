@@ -1,56 +1,21 @@
-# === DELIVERY APP (PROD) ===
-image:
-  repository: ritatrcr/delivery-app
-  tag: v1.0.22 # lo sobreescribe el pipeline con DOCKER_VERSION
-  pullPolicy: IfNotPresent
+global:
+  host: prod.167.172.14.0.nip.io
+  pathPrefix: "/"
+
 app:
+  image:
+    tag: v1.0.7
   replicas: 3
   resources:
-    requests:
-      cpu: "200m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-  env:
-    NODE_ENV: production
-    DB_HOST: postgres
-    DB_PORT: "5432"
-    DB_USER: pedidos
-    DB_PASSWORD: pedidos123 # o léelo desde tu Secret si tu template lo soporta
-    DB_NAME: pedidos
-service:
-  port: 80
-  targetPort: 3000
-ingress:
-  enabled: true
-  ingressClassName: nginx
-  host: prod.167.172.14.0.nip.io
-  path: /
-  pathType: Prefix
-  annotations: {} 
-hpa:
-  enabled: true
-  minReplicas: 3
-  maxReplicas: 6
-  targetCPUUtilizationPercentage: 60
-# === POSTGRES (PROD) ===
-postgres:
-  enabled: true
-  image: postgres:15
-  service:
-    port: 5432
-  auth:
-    username: postgres
-    password: postgres
-    database: postgres
-  persistence:
+    requests: { cpu: "200m", memory: "256Mi" }
+    limits:   { cpu: "500m", memory: "512Mi" }
+  hpa:
     enabled: true
-    size: 10Gi
-  resources:
-    requests:
-      cpu: "200m"
-      memory: "512Mi"
-    limits:
-      cpu: "1000m"
-      memory: "1Gi"
+    minReplicas: 3
+    maxReplicas: 8
+    targetCPU: 70
+
+postgresql:
+  primary:
+    persistence:
+      size: 20Gi
