@@ -1,7 +1,7 @@
 # === DELIVERY APP (PROD) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v1.0.18 # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v1.0.19 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
 app:
   replicas: 3
@@ -20,8 +20,8 @@ app:
     DB_PASSWORD: pedidos123 # o léelo desde tu Secret si tu template lo soporta
     DB_NAME: pedidos
 service:
-  type: ClusterIP
-  port: 3000
+  port: 80
+  targetPort: 3000
 ingress:
   enabled: true
   ingressClassName: nginx
