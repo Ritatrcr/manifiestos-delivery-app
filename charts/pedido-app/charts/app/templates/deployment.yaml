@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-app" .Release.Name }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ printf "%s-app" .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ printf "%s-app" .Release.Name }}
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.service.port }}
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.app.env.NODE_ENV | quote }}
+            - name: DB_HOST
+              value: {{ .Values.app.env.DB_HOST | quote }}
+            - name: DB_PORT
+              value: {{ .Values.app.env.DB_PORT | quote }}
+            - name: DB_NAME
+              value: {{ .Values.app.env.DB_NAME | quote }}
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-db" .Release.Name }}  # si creas tú el Secret
+                  key: {{ .Values.app.secret.usernameKey }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-db" .Release.Name }}
+                  key: {{ .Values.app.secret.passwordKey }}
+          resources: {{- toYaml .Values.app.resources | nindent 12 }}

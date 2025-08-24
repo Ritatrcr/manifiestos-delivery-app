@@ -1,24 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pedido-app-prod
+  name: pedido-app-dev
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://ritatrcr.github.io/helm-chart
-    chart: pedido-app
-    targetRevision: "0.1.0"
+    repoURL: https://github.com/TU_USER/manifiestos-delivery-app.git
+    targetRevision: main
+    path: charts/pedido-app
     helm:
-      releaseName: pedido-app-prod
       valueFiles:
-      - values-prod.yaml
+        - values.yaml
+        - values-dev.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: pedido-prod
+    namespace: pedido-dev
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
