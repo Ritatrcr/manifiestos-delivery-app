@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pedido-app.fullname" . }}
+  labels:
+    {{- include "pedido-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default 1 .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "pedido-app.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "pedido-app.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: app
+          image: "{{ required "app.image.repository is required" .Values.app.image.repository }}:{{ required "app.image.tag is required" .Values.app.image.tag }}"
+          imagePullPolicy: {{ default "IfNotPresent" .Values.app.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ default 3000 .Values.app.containerPort }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "pedido-app.fullname" . }}-config
+            - secretRef:
+                name: {{ include "pedido-app.fullname" . }}-secret
+          resources:
+            requests:
+              cpu: {{ default "100m"  .Values.app.resources.requests.cpu }}
+              memory: {{ default "128Mi" .Values.app.resources.requests.memory }}
+            limits:
+              cpu: {{ default "300m"  .Values.app.resources.limits.cpu }}
+              memory: {{ default "256Mi" .Values.app.resources.limits.memory }}
+          readinessProbe:
+            httpGet:
+              path: {{ default "/health" .Values.app.readinessPath }}
+              port: http
+            initialDelaySeconds: {{ default 5  .Values.app.readinessInitialDelaySeconds }}
+            periodSeconds:        {{ default 10 .Values.app.readinessPeriodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ default "/health" .Values.app.livenessPath }}
+              port: http
+            initialDelaySeconds: {{ default 10 .Values.app.livenessInitialDelaySeconds }}
+            periodSeconds:        {{ default 20 .Values.app.livenessPeriodSeconds }}

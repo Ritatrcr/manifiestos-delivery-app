@@ -2,37 +2,27 @@ app:
   image:
     repository: ritatrcr/delivery-app
     tag: v1.0.22
-    pullPolicy: IfNotPresent
   replicas: 2
-
-  config:
-    NODE_ENV: "development"
+  env:
+    NODE_ENV: development
+    DB_HOST: "{{ include \"pedido-app.dbHost\" . }}"
     DB_PORT: "5432"
-    DB_NAME: "postgres"
-    # DB_HOST omitido: tu template lo resuelve a "<release>-postgresql"
-
-  secretRef:
-    name: pedido-dev-db-credentials   # solo el nombre
-
+    DB_NAME: "pedidos"
+    DB_USER: "pedidos"
+    DB_PASSWORD: "pedidos123"   # o quítalo si lo montas solo por Secret
 service:
-  type: ClusterIP
   port: 80
   targetPort: 3000
-
 ingress:
   enabled: true
-  ingressClassName: nginx
+  className: nginx
   host: dev.167.172.14.0.nip.io
   path: /
-
-postgresql:
+db:
   enabled: true
-  architecture: standalone
   auth:
-    existingSecret: "pedido-dev-db-credentials" # el mismo Secret
-    username: "pedidos"     # no sensible
-    database: "pedidos"     # no sensible
+    existingSecret: "pedido-dev-db-credentials"
   primary:
     persistence:
       enabled: true
-      size: 8Gi
+      size: 1Gi

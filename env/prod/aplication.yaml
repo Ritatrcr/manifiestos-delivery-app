@@ -6,13 +6,12 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://ritatrcr.github.io/helm-chart
-    chart: pedido-app
-    targetRevision: "0.1.0"
+    repoURL: https://github.com/TU_USUARIO/TU_REPO_MANIFIESTOS.git
+    path: charts/pedido-app
+    targetRevision: main
     helm:
-      releaseName: pedido-app-prod
       valueFiles:
-      - values-prod.yaml
+        - values-prod.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: pedido-prod
@@ -21,4 +20,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true

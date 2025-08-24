@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pedido-app.fullname" . }}
+  labels:
+    {{- include "pedido-app.labels" . | nindent 4 }}
+spec:
+  type: {{ default "ClusterIP" .Values.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ include "pedido-app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: {{ required "service.port is required" .Values.service.port }}
+      targetPort: {{ default "http" .Values.service.targetPort | quote }}

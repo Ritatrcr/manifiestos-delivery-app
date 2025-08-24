@@ -1,12 +1,16 @@
 apiVersion: v2
 name: pedido-app
-description: Chart de la app monolito + Postgres + Ingress
+description: Sistema de pedidos - chart raíz con app y PostgreSQL (Bitnami)
 type: application
-version: 1.0.9
-appVersion: "1.0.22-fa01652"
+version: 1.0.0
+appVersion: "1.0.0"
 
 dependencies:
   - name: postgresql
-    version: 15.*            # o la versión que estés usando
+    alias: db
+    version: 15.5.21
     repository: https://charts.bitnami.com/bitnami
-    condition: postgresql.enabled
+    condition: db.enabled
+  - name: app
+    version: 1.0.0
+    repository: "file://charts/app"

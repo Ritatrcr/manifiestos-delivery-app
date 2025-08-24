@@ -1,69 +1,58 @@
-# === GLOBALS ===
 global:
-  host: "app.local"     # override en dev/prod
-  pathPrefix: "/"       # si usas prefijos, cámbialo
+  nameOverride: ""
+  fullnameOverride: ""
 
-# === APP (subchart) ===
-app:
+db:
   enabled: true
-  image:
-    repository: ritatrcr/delivery-app
-    tag: v1.0.7
-    pullPolicy: IfNotPresent
-
-  replicas: 2
-
-  service:
-    type: ClusterIP
-    port: 3000
-
-  resources:
-    requests:
-      cpu: "200m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-
-  hpa:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 5
-    targetCPU: 75
-
-  # Variables NO sensibles -> van a ConfigMap
-  config:
-    NODE_ENV: "production"
-    DB_HOST: ""            # si lo dejas vacío, lo calculamos al vuelo: <release>-postgresql
-    DB_PORT: "5432"
-    DB_NAME: "pedidos"
-
-  # Variables sensibles -> van a Secret
-  secret:
-    DB_USER: "pedidos"
-    DB_PASSWORD: "pedidos123"
-
-# === PostgreSQL (Bitnami) ===
-postgres:
-  enabled: true
-postgresql:
-  architecture: standalone
-
   auth:
-    username: pedidos
-    password: pedidos123
-    database: pedidos
-    
-
+    existingSecret: ""    # si lo dejas vacío, se crea el Secret anterior
+    password: "pedidos123"
+    username: "postgres"
+    database: "postgres"
   primary:
     persistence:
       enabled: true
-      size: 8Gi
-
+      size: 1Gi
   resources:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
+    requests: { cpu: "50m", memory: "128Mi" }
+    limits:   { cpu: "200m", memory: "256Mi" }
+
+app:
+  image:
+    repository: ritatrcr/delivery-app
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  containerPort: 3000
+  resources:
+    requests: { cpu: "100m", memory: "128Mi" }
+    limits:   { cpu: "300m", memory: "256Mi" }
+
+  env:
+    NODE_ENV: production
+    DB_HOST: "{{ include \"pedido-app.dbHost\" . }}"
+    DB_PORT: "5432"
+    DB_NAME: "postgres"
+    DB_USER: "postgres"
+  secretRefs:
+    useDbSecret: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: false
+  className: nginx
+  host: ""
+  path: /
+  pathType: Prefix
+  rewriteTarget: /
+  tls: []
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 75

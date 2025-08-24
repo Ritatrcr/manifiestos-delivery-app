@@ -1,69 +1,37 @@
-# === DELIVERY APP (PROD) ===
 app:
   image:
     repository: ritatrcr/delivery-app
     tag: v1.0.22
-    pullPolicy: IfNotPresent
   replicas: 3
-
-  # No sensible -> irá a ConfigMap
-  config:
-    NODE_ENV: "production"
-    # DB_HOST lo omitimos: el template lo resuelve a "<release>-postgresql"
+  env:
+    NODE_ENV: production
+    DB_HOST: "{{ include \"pedido-app.dbHost\" . }}"
     DB_PORT: "5432"
     DB_NAME: "postgres"
-
-  # Solo el nombre del Secret (NO contraseñas aquí)
-  secretRef:
-    name: pedido-prod-db-credentials
-
-  resources:
-    requests:
-      cpu: "200m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-
+    DB_USER: "postgres"
+    DB_PASSWORD: "pedidos123"
 service:
   port: 80
   targetPort: 3000
-
 ingress:
   enabled: true
-  ingressClassName: nginx
+  className: nginx
   host: prod.167.172.14.0.nip.io
   path: /
-  pathType: Prefix
-  annotations: {}
-
 hpa:
   enabled: true
   minReplicas: 3
   maxReplicas: 6
   targetCPUUtilizationPercentage: 60
 
-# === POSTGRES (PROD) ===
-# Usa el chart de Bitnami (dependencia en Chart.yaml)
-postgresql:
+db:
   enabled: true
-  architecture: standalone
   auth:
-    # Reutiliza el MISMO Secret de la app (solo referencia por nombre)
     existingSecret: "pedido-prod-db-credentials"
-    # No sensibles -> OK en values (deben concordar con lo que tu app usa)
-    username: "postgres"
-    database: "postgres"
-
   primary:
     persistence:
       enabled: true
       size: 10Gi
-
   resources:
-    requests:
-      cpu: "200m"
-      memory: "512Mi"
-    limits:
-      cpu: "1000m"
-      memory: "1Gi"
+    requests: { cpu: "200m", memory: "512Mi" }
+    limits:   { cpu: "1000m", memory: "1Gi" }

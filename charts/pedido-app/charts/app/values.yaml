@@ -1,0 +1,35 @@
+image:
+  repository: nginx
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+replicas: 1
+containerPort: 3000
+
+resources:
+  requests: { cpu: "50m", memory: "64Mi" }
+  limits:   { cpu: "200m", memory: "256Mi" }
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: false
+  className: ""
+  host: ""
+  path: /
+  pathType: Prefix
+  rewriteTarget: /
+  tls: []
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 75
+
+env: {}
+secretRefs:
+  useDbSecret: false
