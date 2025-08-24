@@ -1,29 +1,69 @@
-replicaCount: 2
-image:
-  repository: ritatrcr/delivery-app
-  tag: "1.0.22-fa01652"
-  pullPolicy: IfNotPresent
-service:
-  port: 80
-  targetPort: 3000
-resources:
-  requests:
-    memory: "512Mi"
-    cpu: "100m"
-  limits:
-    memory: "1Gi"
-    cpu: "400m"
+# === GLOBALS ===
+global:
+  host: "app.local"     # override en dev/prod
+  pathPrefix: "/"       # si usas prefijos, cámbialo
 
-postgres:
-  image: postgres:15
-  storage: 1Gi
-  user: DB_USER
-  password: DB_PASSWORD
-  db: DB_NAME
-  port: DB_PORT
-hpa:
+# === APP (subchart) ===
+app:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 6
-  targetCPUUtilizationPercentage: 85
+  image:
+    repository: ritatrcr/delivery-app
+    tag: v1.0.7
+    pullPolicy: IfNotPresent
 
+  replicas: 2
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPU: 75
+
+  # Variables NO sensibles -> van a ConfigMap
+  config:
+    NODE_ENV: "production"
+    DB_HOST: ""            # si lo dejas vacío, lo calculamos al vuelo: <release>-postgresql
+    DB_PORT: "5432"
+    DB_NAME: "pedidos"
+
+  # Variables sensibles -> van a Secret
+  secret:
+    DB_USER: "pedidos"
+    DB_PASSWORD: "pedidos123"
+
+# === PostgreSQL (Bitnami) ===
+postgres:
+  enabled: true
+postgresql:
+  architecture: standalone
+
+  auth:
+    username: pedidos
+    password: pedidos123
+    database: pedidos
+    
+
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"

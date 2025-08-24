@@ -1,6 +1,0 @@
-apiVersion: v2
-name: app
-description: Aplicación unificada (ritatrcr/delivery-app)
-type: application
-version: 1.0.0
-appVersion: "1.0.0"

@@ -1,18 +1,38 @@
-global:
-  host: dev.167.172.14.0.nip.io
-  pathPrefix: "/"
-
 app:
   image:
-    tag: v1.0.4
-  replicas: 1
-  resources:
-    requests: { cpu: "100m", memory: "128Mi" }
-    limits:   { cpu: "300m", memory: "256Mi" }
+    repository: ritatrcr/delivery-app
+    tag: v1.0.22
+    pullPolicy: IfNotPresent
+  replicas: 2
+
   config:
-    NODE_ENV: development
+    NODE_ENV: "development"
+    DB_PORT: "5432"
+    DB_NAME: "postgres"
+    # DB_HOST omitido: tu template lo resuelve a "<release>-postgresql"
+
+  secretRef:
+    name: pedido-dev-db-credentials   # solo el nombre
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  host: dev.167.172.14.0.nip.io
+  path: /
 
 postgresql:
+  enabled: true
+  architecture: standalone
+  auth:
+    existingSecret: "pedido-dev-db-credentials" # el mismo Secret
+    username: "pedidos"     # no sensible
+    database: "pedidos"     # no sensible
   primary:
     persistence:
-      size: 4Gi
+      enabled: true
+      size: 8Gi

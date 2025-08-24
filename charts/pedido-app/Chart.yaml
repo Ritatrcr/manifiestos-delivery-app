@@ -4,3 +4,9 @@ description: Chart de la app monolito + Postgres + Ingress
 type: application
 version: 1.0.9
 appVersion: "1.0.22-fa01652"
+
+dependencies:
+  - name: postgresql
+    version: 15.*            # o la versión que estés usando
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
