@@ -1,7 +1,7 @@
 # === DELIVERY APP (DEV) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v1.0.19 # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v1.0.20 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
 app:
   replicas: 2
@@ -25,13 +25,12 @@ service:
   targetPort: 3000
 
 ingress:
-ingress:
   enabled: true
   ingressClassName: nginx
-  host: dev.167.172.14.0.nip.io      # <-- HOST DE DEV
-  path: /patrones-dev(/|$)(.*)       # regex con captura
-  useRegex: true
-  rewriteTarget: "/$2"
+  host: dev.167.172.14.0.nip.io
+  path: /
+  pathType: Prefix
+  annotations: {} 
 
 hpa:
   enabled: false

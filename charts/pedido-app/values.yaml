@@ -13,10 +13,7 @@ resources:
   limits:
     memory: "1Gi"
     cpu: "400m"
-ingress:
-  enabled: true
-  className: nginx
-  path: /patrones(/|$)(.*)
+
 postgres:
   image: postgres:15
   storage: 1Gi

@@ -25,10 +25,10 @@ service:
 ingress:
   enabled: true
   ingressClassName: nginx
-  host: prod.167.172.14.0.nip.io
-  path: /patrones-prod(/|$)(.*)
-  useRegex: true
-  rewriteTarget: "/$2"
+  host: dev.167.172.14.0.nip.io
+  path: /
+  pathType: Prefix
+  annotations: {} 
 hpa:
   enabled: true
   minReplicas: 3
