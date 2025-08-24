@@ -1,7 +1,7 @@
 # === DELIVERY APP (DEV) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v0.0.0 # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v1.0.9 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
 app:
   replicas: 1
@@ -19,7 +19,6 @@ app:
     DB_USER: pedidos
     DB_PASSWORD: pedidos123 # si usas Secret, que tu template lo lea de ahí
     DB_NAME: pedidos
- 
 service:
   type: ClusterIP
   port: 3000
