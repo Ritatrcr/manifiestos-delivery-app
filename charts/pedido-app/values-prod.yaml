@@ -21,7 +21,7 @@ app:
     DB_NAME: pedidos
   image:
     repository: ritatrcr/delivery-app
-    tag: v1.0.7
+    tag: v1.0.0
 service:
   type: ClusterIP
   port: 3000
