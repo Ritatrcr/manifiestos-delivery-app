@@ -1,7 +1,7 @@
 # === DELIVERY APP (DEV) ===
 image:
   repository: ritatrcr/delivery-app
-  tag: v1.0.17 # lo sobreescribe el pipeline con DOCKER_VERSION
+  tag: v1.0.18 # lo sobreescribe el pipeline con DOCKER_VERSION
   pullPolicy: IfNotPresent
 app:
   replicas: 2
@@ -22,10 +22,14 @@ app:
 service:
   type: ClusterIP
   port: 3000
+
 ingress:
   enabled: true
-  className: nginx
-  path: /patrones-dev(/|$)(.*)   
+  ingressClassName: nginx
+  host: prod.167.172.14.0.nip.io
+  path: /patrones-dev(/|$)(.*)
+  useRegex: true
+  rewriteTarget: "/$2" 
 hpa:
   enabled: false
   minReplicas: 1
