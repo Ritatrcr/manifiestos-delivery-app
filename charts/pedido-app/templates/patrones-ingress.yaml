@@ -1,24 +1,27 @@
+{{- $ing := .Values.ingress | default dict -}}
+{{- if $ing.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Chart.Name }}
   annotations:
-    {{- with .Values.ingress.rewriteTarget }}
+    {{- with $ing.rewriteTarget }}
     nginx.ingress.kubernetes.io/rewrite-target: {{ . | quote }}
     {{- end }}
-    {{- if .Values.ingress.useRegex }}
+    {{- if $ing.useRegex }}
     nginx.ingress.kubernetes.io/use-regex: "true"
     {{- end }}
 spec:
-  ingressClassName: {{ default "nginx" .Values.ingress.ingressClassName }}
+  ingressClassName: {{ default "nginx" $ing.ingressClassName }}
   rules:
-  - host: {{ required "Set .Values.ingress.host en values-*.yaml" .Values.ingress.host }}
+  - host: {{ required "Set .Values.ingress.host en values-*.yaml" $ing.host }}
     http:
       paths:
-      - path: {{ .Values.ingress.path }}
-        pathType: ImplementationSpecific
+      - path: {{ $ing.path | default "/" }}
+        pathType: {{ if $ing.useRegex }}ImplementationSpecific{{ else }}Prefix{{ end }}
         backend:
           service:
             name: {{ .Chart.Name }}
             port:
               number: {{ .Values.service.port }}
+{{- end }}
