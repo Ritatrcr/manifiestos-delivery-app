@@ -58,11 +58,4 @@ postgres:
     limits:
       cpu: "1000m"
       memory: "1Gi"
-backend:
-  image:
-    repository: ritatrcr/delivery-app
-    tag: v1.0.7
-frontend:
-  image:
-    repository: ritatrcr/delivery-app
-    tag: v1.0.7
+
