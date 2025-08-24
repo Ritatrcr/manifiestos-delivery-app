@@ -19,9 +19,7 @@ app:
     DB_USER: pedidos
     DB_PASSWORD: pedidos123 # o léelo desde tu Secret si tu template lo soporta
     DB_NAME: pedidos
-  image:
-    repository: ritatrcr/delivery-app
-    tag: v1.0.7
+  
 service:
   type: ClusterIP
   port: 3000
@@ -58,11 +56,4 @@ postgres:
     limits:
       cpu: "1000m"
       memory: "1Gi"
-backend:
-  image:
-    repository: ritatrcr/delivery-app
-    tag: v1.0.7
-frontend:
-  image:
-    repository: ritatrcr/delivery-app
-    tag: v1.0.7
+
