@@ -9,7 +9,7 @@ app:
     DB_PORT: "5432"
     DB_NAME: "pedidos"
     DB_USER: "pedidos"
-    DB_PASSWORD: "pedidos123"   # o quítalo si lo montas solo por Secret
+    DB_PASSWORD: "pedidos123" # o quítalo si lo montas solo por Secret
 service:
   port: 80
   targetPort: 3000
@@ -26,3 +26,7 @@ db:
     persistence:
       enabled: true
       size: 1Gi
+image:
+  repository: ritatrcr/delivery-app
+  tag: v1.0.28
+  pullPolicy: IfNotPresent

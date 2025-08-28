@@ -2,9 +2,8 @@ apiVersion: v2
 name: pedido-app
 description: Sistema de pedidos - chart raíz con app y PostgreSQL (Bitnami)
 type: application
-version: 1.0.0
+version: 1.0.28
 appVersion: "1.0.0"
-
 dependencies:
   - name: postgresql
     alias: db

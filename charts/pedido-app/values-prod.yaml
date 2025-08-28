@@ -23,7 +23,6 @@ hpa:
   minReplicas: 3
   maxReplicas: 6
   targetCPUUtilizationPercentage: 60
-
 db:
   enabled: true
   auth:
@@ -33,5 +32,9 @@ db:
       enabled: true
       size: 10Gi
   resources:
-    requests: { cpu: "200m", memory: "512Mi" }
-    limits:   { cpu: "1000m", memory: "1Gi" }
+    requests: {cpu: "200m", memory: "512Mi"}
+    limits: {cpu: "1000m", memory: "1Gi"}
+image:
+  repository: ritatrcr/delivery-app
+  tag: v1.0.28
+  pullPolicy: IfNotPresent
